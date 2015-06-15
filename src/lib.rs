@@ -215,6 +215,33 @@ fn simple_tree(size: i32) -> Box<Node<i32>> {
     t
 }
 
+fn is_sorted_left<T>(node: &Box<Node<T>>) -> bool {
+    match node.left{
+        Some(ref succ) => succ.key < node.key,
+        None => true
+    }
+}
+
+fn is_sorted_right<T>(node: &Box<Node<T>>) -> bool {
+    match node.right{
+        Some(ref succ) => succ.key > node.key,
+        None => true
+    }
+}
+
+fn is_avl_node<T>(node: &Box<Node<T>>) -> bool {
+    let sorted = is_sorted_left(node) && is_sorted_right(node);
+    let balanced = node.height == cmp::max(height(&node.left),height(&node.right))+1;
+    return sorted && balanced;
+}
+
+fn is_avl_tree<T>(root: &Option<Box<Node<T>>>) -> bool {
+    match *root {
+        None => true,
+        Some(ref node) => is_avl_node(node),
+    }
+}
+
 #[test]
 fn simple_tree_operations() {
     let mut t = Box::new(Node::<i32>{key: 3, data: 4, height: 2,
@@ -237,6 +264,7 @@ fn rotations_on_tree(){
     let mut t = Box::new(Node::<i32>{key: 1, data: 1337, height: 1, left: None, right: None});
     for i in 2..255 {
         t = insert::<i32>(i,1337, t);
+        assert!(is_avl_node(&t));
     }
     //check that the tree is indeed balanced
     assert!(height(&Some(t)) <= 8);
@@ -247,6 +275,7 @@ fn test_drop_min(){
     let mut t = simple_tree(3);
     let (maybe_tree,min) = drop_and_get_min(t);
     t = maybe_tree.expect("failure to get tree for first min delete");
+    assert!(is_avl_node(&t));
     assert!( min.key == 1);
     assert!(!contains::<i32>(1,&t));
     assert!(contains::<i32>(2,&t));
@@ -254,6 +283,7 @@ fn test_drop_min(){
 
     let (maybe_tree,min) = drop_and_get_min(t);
     t = maybe_tree.expect("failure to get tree for second min delete");
+    assert!(is_avl_node(&t));
     assert!( min.key == 2);
     assert!(!contains::<i32>(1,&t));
     assert!(!contains::<i32>(2,&t));
@@ -269,6 +299,7 @@ fn test_drop_root(){
     let mut t = simple_tree(3);
     let maybe_tree = drop_root(t);
     t = maybe_tree.expect("failure to get tree for first root drop");
+    assert!(is_avl_node(&t));
     println!("{}",t.to_string());
     assert!( t.height == 2);
     assert!(contains::<i32>(1,&t));
@@ -277,6 +308,7 @@ fn test_drop_root(){
 
     let maybe_tree = drop_root(t);
     t = maybe_tree.expect("failure to get tree for second root drop");
+    assert!(is_avl_node(&t));
     assert!(contains::<i32>(1,&t));
     assert!(!contains::<i32>(2,&t));
     assert!(!contains::<i32>(3,&t));
@@ -293,6 +325,7 @@ fn test_delete(){
         let maybe_tree = delete(i,t);
         t = maybe_tree.expect("failure to get tree for delete");
         assert!(!contains::<i32>(i,&t));
+        assert!(is_avl_node(&t));
     }
     assert!(contains::<i32>(10,&t));
     let maybe_tree = delete(10,t);
