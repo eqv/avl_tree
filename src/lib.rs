@@ -247,6 +247,7 @@ fn simple_tree_operations() {
     let mut t = Box::new(Node::<i32>{key: 3, data: 4, height: 2,
         left: Some(Box::new(Node::<i32>{key: 2, data: 5, height:1, left: None, right: None})), 
         right: None});
+    assert!(is_avl_node(&t));
     assert!( contains::<i32>(3,&t) );
     assert!( contains::<i32>(2,&t) );
     assert!( !contains::<i32>(6,&t) );
