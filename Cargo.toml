@@ -2,3 +2,6 @@
 name = "avl_tree"
 version = "0.1.0"
 authors = ["Cornelius Aschermann <coco@hexgolems.com>"]
+[dependencies]
+rand = "*" # Or a specific version
+time = "*"
