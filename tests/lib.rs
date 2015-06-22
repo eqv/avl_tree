@@ -2,7 +2,6 @@ extern crate avl_tree;
 extern crate rand;
 extern crate time;
 
-use rand::Rng;
 use time::PreciseTime;
 
 #[test]
@@ -71,7 +70,7 @@ fn test_perfomance(){
     let mut t = avl_tree::AVLTree::<u64,i32>::new();
     let data = 1337;
     let start = PreciseTime::now();
-    for x in 1..10000 {
+    for _ in 1..10000 {
         t.insert(1, data);
         t.insert(20000, data+1);
         t.delete(1);
@@ -84,7 +83,7 @@ fn test_perfomance(){
     }
 
     let start_2 = PreciseTime::now();
-    for x in 1..10000 {
+    for _ in 1..10000 {
         t.insert(1, data);
         t.insert(20000, data+1);
         t.delete(1);
@@ -93,4 +92,18 @@ fn test_perfomance(){
     let end_2 = PreciseTime::now();
     let diff_full = start_2.to(end_2).num_milliseconds();
     assert!(diff_full < diff_simple * 13); //log time 
+}
+
+#[test]
+fn test_min(){
+    let mut t = avl_tree::AVLTree::<u64,i32>::new();
+    assert!{t.min().is_none()};
+    t.insert(50,1337);
+    assert_eq!{t.min().expect("get 1 min"),&1337};
+    t.insert(49,1338);
+    assert_eq!{t.min().expect("get 2 min"),&1338};
+    t.insert(47,1339);
+    assert_eq!{t.min().expect("get 2 min"),&1339};
+    t.insert(48,1340);
+    assert_eq!{t.min().expect("get 2 min"),&1339};
 }
