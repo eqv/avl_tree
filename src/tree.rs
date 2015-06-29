@@ -2,13 +2,16 @@ extern crate rand;
 extern crate test;
 
 use node::Node;
-use node::{insert,delete,search,min,max,is_avl_tree, to_string};
+use node::{insert,delete,search,min,max,is_avl_tree, to_string, min_pair, max_pair};
+use iterators::RangePairIter;
+use std::collections::Bound;
 
-pub struct AVLTree<K:Ord,D> {
-    root: Option<Box<Node<K,D>>>
+
+pub struct AVLTree<K:Ord+Copy,D> {
+    pub root: Option<Box<Node<K,D>>>
 }
 
-impl <K:Ord,D> AVLTree<K,D>{
+impl <K:Ord+Copy,D> AVLTree<K,D>{
     pub fn new() -> AVLTree<K,D>{
         AVLTree{root: None}
     }
@@ -29,7 +32,7 @@ impl <K:Ord,D> AVLTree<K,D>{
 
     pub fn get(&self, key: K) -> Option<&D>{
         match self.root {
-            Some(ref box_to_node) =>search(key, box_to_node),
+            Some(ref box_to_node) =>search(&key, box_to_node),
             None => None
         }
     }
@@ -47,18 +50,26 @@ impl <K:Ord,D> AVLTree<K,D>{
 
     pub fn empty(&self) -> bool { self.root.is_none() }
 
-    pub fn min<'a>(&'a self) -> Option<&'a D> {
+    pub fn min<'a>(&'a self) -> Option<(&'a K,&'a D)> {
         match self.root {
-            Some(ref root) => Some(min(root)),
+            Some(ref root) => Some(min_pair(root)),
             None => None
         }
     }
 
-    pub fn max<'a>(&'a self) -> Option<&'a D> {
+    pub fn max<'a>(&'a self) -> Option<(&'a K,&'a D)> {
         match self.root {
-            Some(ref root) => Some(max(root)),
+            Some(ref root) => Some(max_pair(root)),
             None => None
         }
+    }
+
+    pub fn iter(&self) -> RangePairIter<K,D>{
+        RangePairIter::new(self, Bound::Unbounded, Bound::Unbounded)
+    }
+
+    pub fn range(&self, min: Bound<K>, max: Bound<K>) -> RangePairIter<K,D>{
+        RangePairIter::new(self, min, max)
     }
 
     fn test_avl_tree(&self) -> bool {

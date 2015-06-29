@@ -1,7 +1,10 @@
+#![feature(collections_bound)]
+
 extern crate avl_tree;
 extern crate rand;
 extern crate time;
 
+use std::collections::Bound;
 use time::PreciseTime;
 
 #[test]
@@ -99,11 +102,60 @@ fn test_min(){
     let mut t = avl_tree::AVLTree::<u64,i32>::new();
     assert!{t.min().is_none()};
     t.insert(50,1337);
-    assert_eq!{t.min().expect("get 1 min"),&1337};
+    assert_eq!{t.min().expect("get 1 min"),(&50,&1337)};
     t.insert(49,1338);
-    assert_eq!{t.min().expect("get 2 min"),&1338};
+    assert_eq!{t.min().expect("get 2 min"),(&49,&1338)};
     t.insert(47,1339);
-    assert_eq!{t.min().expect("get 2 min"),&1339};
+    assert_eq!{t.min().expect("get 2 min"),(&47,&1339)};
     t.insert(48,1340);
-    assert_eq!{t.min().expect("get 2 min"),&1339};
+    assert_eq!{t.min().expect("get 2 min"),(&47,&1339)};
+}
+
+#[test]
+fn test_iter(){
+    let mut t = avl_tree::AVLTree::<u64,i32>::new();
+    t.insert(32,1337);
+    t.insert(34,1338);
+    t.insert(36,1339);
+    t.insert(38,1340);
+    for (i,pair) in t.iter().enumerate() {
+        let (k,v) = pair;
+        println!("{}, {}",k,v);
+        assert_eq!(k,&((i as u64)*2 +32));
+        assert_eq!(v,&((i as i32)+1337));
+    }
+
+}
+
+#[test]
+fn test_range_iter(){
+    let mut t = avl_tree::AVLTree::<u64,i32>::new();
+    t.insert(32,1337);
+    t.insert(34,1338);
+    t.insert(36,1339);
+    t.insert(38,1340);
+    for (i,pair) in t.range(Bound::Unbounded, Bound::Unbounded).enumerate() {
+        let (k,v) = pair;
+        println!("{}, {}",k,v);
+        assert_eq!(k,&((i as u64)*2 +32));
+        assert_eq!(v,&((i as i32)+1337));
+        assert!(i<4);
+    }
+    println!("included");
+    for (i,pair) in t.range(Bound::Included(34), Bound::Included(36)).enumerate() {
+        let (k,v) = pair;
+        println!("{}, {}",k,v);
+        assert_eq!(k,&((i as u64)*2 +34));
+        assert_eq!(v,&((i as i32)+1338));
+        assert!(i<2);
+    }
+
+    println!("excluded");
+    for (i,pair) in t.range(Bound::Excluded(32), Bound::Excluded(38)).enumerate() {
+        let (k,v) = pair;
+        println!("{}, {}",k,v);
+        assert_eq!(k,&((i as u64)*2 +34));
+        assert_eq!(v,&((i as i32)+1338));
+        assert!(i<2);
+    }
 }

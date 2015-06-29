@@ -134,32 +134,37 @@ pub fn insert<K:Ord,D>(key: K, data: D, mut root: Box<Node<K,D>>) -> Box<Node<K,
 }
 
 /// returns a read only reference to the data stored under key in the tree given by root
-pub fn search<K:Ord,D>(key: K, root: &Box<Node<K,D>>) -> Option<&D>{
-    let order = root.key.cmp(&key);
-    if order == Ordering::Equal { return Some(&root.data) }
+pub fn search<'a, K:Ord,D>(key: &K, root: &'a Box<Node<K,D>>) -> Option<&'a D>{
+    search_pair(key,root).map(|(_,v)| v )
+}
+
+/// returns a read only reference paie to the data stored under key in the tree given by root
+pub fn search_pair<'a, K:Ord,D>(key: &K, root: &'a Box<Node<K,D>>) -> Option<(&'a K,&'a D)>{
+    let order = root.key.cmp(key);
+    if order == Ordering::Equal { return Some((&root.key, &root.data)) }
     if order == Ordering::Less {
         if let Some(ref succ) = root.right {
-            return search(key, &succ)
+            return search_pair(key, &succ)
         }
     }
     if order == Ordering::Greater {
         if let Some(ref succ) = root.left {
-            return search(key, &succ)
+            return search_pair(key, &succ)
         }
     }
     return None
 }
 
+
 /// returns true iff key is stored in the tree given by root
-fn contains<K:Ord,D>(key: K, root: &Box<Node<K,D>> ) -> bool  {
+fn contains<K:Ord,D>(key: &K, root: &Box<Node<K,D>> ) -> bool  {
     search(key,root).is_some()
 }
 
 
 ///returns the smallest key and value after the given key.
-pub fn min_after<K:Ord+ToString,D>(key: K, root: &Box<Node<K,D>>) -> Option<(&K,&D)> {
-    println!("min after {}",root.key.to_string());
-    let order = root.key.cmp(&key);
+pub fn min_after<'a, K:Ord,D>(key: &K, root: &'a Box<Node<K,D>>) -> Option<(&'a K,&'a D)> {
+    let order = root.key.cmp(key);
     if order == Ordering::Equal { 
         match root.right {
             Some(ref rsucc) => return Some(min_pair(rsucc)),
@@ -189,6 +194,14 @@ pub fn min_after<K:Ord+ToString,D>(key: K, root: &Box<Node<K,D>>) -> Option<(&K,
 pub fn min_pair<K:Ord,D>(root: &Box<Node<K,D>>) -> (&K,&D) {
     match root.left {
         Some(ref succ) => min_pair(succ),
+        None => (&root.key,&root.data)
+    }
+}
+
+///returns the maximal key,value pair within this tree
+pub fn max_pair<K:Ord,D>(root: &Box<Node<K,D>>) -> (&K,&D) {
+    match root.right {
+        Some(ref succ) => max_pair(succ),
         None => (&root.key,&root.data)
     }
 }
@@ -312,16 +325,16 @@ fn simple_tree_operations() {
         left: Some(Box::new(Node::<u64,i32>{key: 2, data: 5, height:1, left: None, right: None})), 
         right: None});
     assert!(is_avl_node(&t));
-    assert!( contains::<u64,i32>(3,&t) );
-    assert!( contains::<u64,i32>(2,&t) );
-    assert!( !contains::<u64,i32>(6,&t) );
-    assert!( !contains::<u64,i32>(4,&t) );
+    assert!( contains::<u64,i32>(&3,&t) );
+    assert!( contains::<u64,i32>(&2,&t) );
+    assert!( !contains::<u64,i32>(&6,&t) );
+    assert!( !contains::<u64,i32>(&4,&t) );
     t = insert::<u64,i32>(4,7, t);
     t = insert::<u64,i32>(5,7, t);
     t = insert::<u64,i32>(6,8, t);
-    assert!( contains::<u64,i32>(4,&t) );
-    assert!( contains::<u64,i32>(6,&t) );
-    assert!( !contains::<u64,i32>(7,&t) );
+    assert!( contains::<u64,i32>(&4,&t) );
+    assert!( contains::<u64,i32>(&6,&t) );
+    assert!( !contains::<u64,i32>(&7,&t) );
 }
 
 #[test]
@@ -342,17 +355,17 @@ fn test_drop_min(){
     t = maybe_tree.expect("failure to get tree for first min delete");
     assert!(is_avl_node(&t));
     assert!( min.key == 1);
-    assert!(!contains::<u64,i32>(1,&t));
-    assert!(contains::<u64,i32>(2,&t));
-    assert!(contains::<u64,i32>(3,&t));
+    assert!(!contains::<u64,i32>(&1,&t));
+    assert!(contains::<u64,i32>(&2,&t));
+    assert!(contains::<u64,i32>(&3,&t));
 
     let (maybe_tree,min) = drop_min(t);
     t = maybe_tree.expect("failure to get tree for second min delete");
     assert!(is_avl_node(&t));
     assert!( min.key == 2);
-    assert!(!contains::<u64,i32>(1,&t));
-    assert!(!contains::<u64,i32>(2,&t));
-    assert!(contains::<u64,i32>(3,&t));
+    assert!(!contains::<u64,i32>(&1,&t));
+    assert!(!contains::<u64,i32>(&2,&t));
+    assert!(contains::<u64,i32>(&3,&t));
 
     let (maybe_tree,min) = drop_min(t);
     assert!( maybe_tree.is_none() );
@@ -367,16 +380,16 @@ fn test_drop_root(){
     assert!(is_avl_node(&t));
     println!("{}",t.to_string());
     assert!( t.height == 2);
-    assert!(contains::<u64,i32>(1,&t));
-    assert!(!contains::<u64,i32>(2,&t));
-    assert!(contains::<u64,i32>(3,&t));
+    assert!(contains::<u64,i32>(&1,&t));
+    assert!(!contains::<u64,i32>(&2,&t));
+    assert!(contains::<u64,i32>(&3,&t));
 
     let maybe_tree = delete_root(t);
     t = maybe_tree.expect("failure to get tree for second root drop");
     assert!(is_avl_node(&t));
-    assert!(contains::<u64,i32>(1,&t));
-    assert!(!contains::<u64,i32>(2,&t));
-    assert!(!contains::<u64,i32>(3,&t));
+    assert!(contains::<u64,i32>(&1,&t));
+    assert!(!contains::<u64,i32>(&2,&t));
+    assert!(!contains::<u64,i32>(&3,&t));
 
     let maybe_tree = delete_root(t);
     assert!( maybe_tree.is_none() );
@@ -386,13 +399,13 @@ fn test_drop_root(){
 fn test_delete(){
     let mut t = simple_tree(10);
     for i in 1..10 {
-        assert!(contains::<u64,i32>(i,&t));
+        assert!(contains::<u64,i32>(&i,&t));
         let maybe_tree = delete(i,t);
         t = maybe_tree.expect("failure to get tree for delete");
-        assert!(!contains::<u64,i32>(i,&t));
+        assert!(!contains::<u64,i32>(&i,&t));
         assert!(is_avl_node(&t));
     }
-    assert!(contains::<u64,i32>(10,&t));
+    assert!(contains::<u64,i32>(&10,&t));
     let maybe_tree = delete(10,t);
     assert!(maybe_tree.is_none());
 }
@@ -402,7 +415,7 @@ fn test_min_after(){
     let mut t = simple_tree(50);
     for old_key in 0..55 {
         println!("trying value: {}", old_key);
-        match min_after(old_key,&t) {
+        match min_after(&old_key,&t) {
             Some((k,d)) => assert_eq!(k, &(old_key+1)),
             None => assert!(old_key >= 50)
         }
