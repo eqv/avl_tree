@@ -17,13 +17,8 @@ impl<'a, K:'a+Ord+Copy,D:'a> RangePairIter<'a, K, D> {
 
     fn get_next_key_under(&mut self, root: &'a Box<node::Node<K,D>>) -> Option<(&'a K,&'a D)>{
         let res = self.get_next_pair(root).and_then(|p| self.check_upper_bound(p));
-        match res {
-            None => return None,
-            Some((key,val)) => { 
-                self.prev = Some(key);
-                return Some((key,val))
-            }
-        }
+        res.and_then(|(key,val)|{self.prev = Some(key); Some(0)});
+        return res
     }
 
     fn get_next_pair(&mut self, root: &'a Box<node::Node<K,D>>) -> Option<(&'a K, &'a D)>{

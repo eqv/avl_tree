@@ -113,20 +113,19 @@ fn update_height<K:Ord,D>(root: &mut Node<K,D>){
 /// root may now differ due to rotations, thus the old root is moved into the function)
 pub fn insert<K:Ord,D>(key: K, data: D, mut root: Box<Node<K,D>>) -> Box<Node<K,D>>{
     let order = root.key.cmp(&key);
-    if order == Ordering::Equal { root.data = data; return root }
-    else 
-    if order == Ordering::Less {
-        if let Some(succ) = root.right.take() {
-            root.right = Some(insert(key, data, succ));
-        } else {
-            root.right = Some(Box::new(Node::<K,D>{key: key, data: data, height: 1, left: None, right: None}));
-        }
-    } else 
-    if order == Ordering::Greater {
-        if let Some(succ) = root.left.take() {
-            root.left = Some(insert(key, data, succ));
-        } else {
-            root.left = Some(Box::new(Node::<K,D>{key: key, data: data, height: 1, left: None, right: None}));
+    match order {
+        Ordering::Equal => { root.data = data; return root },
+        Ordering::Less => {
+            root.right = Some(match root.right.take() {
+                Some(succ) => insert(key, data, succ),
+                None =>Box::new(Node::new(key, data))
+            })
+        },
+        Ordering::Greater => {
+            root.left = Some(match root.left.take() {
+                Some(succ) => insert(key, data, succ),
+                None => Box::new(Node::new(key, data))
+            })
         }
     }
     update_height(&mut *root);
