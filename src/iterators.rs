@@ -12,12 +12,12 @@ pub struct RangePairIter<'a, K:'a+Ord+Copy,D:'a> {
 impl<'a, K:'a+Ord+Copy,D:'a> RangePairIter<'a, K, D> {
 
     pub fn new(tree: &'a tree::AVLTree<K,D>, lower: Bound<K>, upper: Bound<K>) -> RangePairIter<'a,K,D>{
-        RangePairIter{tree: tree, from: lower, to: lower, prev:None}
+        RangePairIter{tree: tree, from: lower, to: upper, prev:None}
     }
 
     fn get_next_key_under(&mut self, root: &'a Box<node::Node<K,D>>) -> Option<(&'a K,&'a D)>{
         let res = self.get_next_pair(root).and_then(|p| self.check_upper_bound(p));
-        res.and_then(|(key,val)|{self.prev = Some(key); Some(0)});
+        if let Some((key,_)) = res { self.prev = Some(key) }
         return res
     }
 
@@ -68,11 +68,34 @@ fn test_iterators(){
     tree.insert(3, 1322);
     let init_key = 0;
     let mut iter = RangePairIter::<u64,i32>{tree: &tree, prev: Some(&init_key), from: Bound::Unbounded, to: Bound::Unbounded};
-    assert!(iter.next().expect("should have a few values").0 == &1);
-    assert!(iter.next().expect("should have a few values").0 == &3);
-    assert!(iter.next().expect("should have a few values").0 == &10);
-    assert!(iter.next().expect("should have a few values").0 == &13);
-    assert!(iter.next().expect("should have a few values").0 == &17);
-    assert!(iter.next().expect("should have a few values").0 == &18);
+    assert_eq!(iter.next().expect("should have a few values").0, &1);
+    assert_eq!(iter.next().expect("should have a few values").0, &3);
+    assert_eq!(iter.next().expect("should have a few values").0, &10);
+    assert_eq!(iter.next().expect("should have a few values").0, &13);
+    assert_eq!(iter.next().expect("should have a few values").0, &17);
+    assert_eq!(iter.next().expect("should have a few values").0, &18);
+    assert!(iter.next().is_none());
+
+    let mut iter = RangePairIter::new(&tree, Bound::Unbounded, Bound::Unbounded);
+    assert_eq!(iter.next().expect("should have a few values").0, &1);
+    assert_eq!(iter.next().expect("should have a few values").0, &3);
+    assert_eq!(iter.next().expect("should have a few values").0, &10);
+    assert_eq!(iter.next().expect("should have a few values").0, &13);
+    assert_eq!(iter.next().expect("should have a few values").0, &17);
+    assert_eq!(iter.next().expect("should have a few values").0, &18);
+    assert!(iter.next().is_none());
+
+    let mut iter = RangePairIter::new(&tree, Bound::Included(3), Bound::Included(17));
+    assert_eq!(iter.next().expect("should have a few values").0, &3);
+    assert_eq!(iter.next().expect("should have a few values").0, &10);
+    assert_eq!(iter.next().expect("should have a few values").0, &13);
+    assert_eq!(iter.next().expect("should have a few values").0, &17);
+    assert!(iter.next().is_none());
+
+    let mut iter = RangePairIter::new(&tree, Bound::Excluded(1), Bound::Excluded(18));
+    assert_eq!(iter.next().expect("should have a few values").0, &3);
+    assert_eq!(iter.next().expect("should have a few values").0, &10);
+    assert_eq!(iter.next().expect("should have a few values").0, &13);
+    assert_eq!(iter.next().expect("should have a few values").0, &17);
     assert!(iter.next().is_none());
 }

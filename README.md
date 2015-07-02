@@ -1,3 +1,3 @@
 # Rust AVL Trees
-This is an implementation of AVL trees in rust. It currently only features insert and look up of `u64` keys and arbitrary
-values. You should not be using this unless you know what you are doing, as I only write it to get to know programming in rust. REPEAT: This is not a serious library, just a test project.
+This is an implementation of AVL trees in rust. It currently features insert, delete, look-up and iteration over ranges of arbitrary keys and arbitrary
+values. It is implemented entirely without unsafe code (this means any update will result in an additional unecessary amount of log(n) memory writes du to `foo.left = some_op(foo.left.take())`. You should not be using this unless you know what you are doing, as I only wrote it to get to know programming in rust. However, it is decently tested and contains no unsafe code so feel free to have a look at it. Also since it is a learning project, I would be very glad to hear your ideas of how to improve the code (even simple things like reformating).

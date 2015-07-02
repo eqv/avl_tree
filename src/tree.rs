@@ -38,10 +38,7 @@ impl <K:Ord+Copy,D> AVLTree<K,D>{
     }
 
     pub fn get_or<'a>(&'a self, key: K, default: &'a D) -> &D{
-        match self.get(key) {
-            Some(data) => data,
-            None => default
-        }
+        self.get(key).map_or(default, |data| data)
     }
 
     pub fn contains(&self, key: K) -> bool {
