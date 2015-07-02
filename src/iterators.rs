@@ -51,12 +51,7 @@ impl<'a, K:'a+Ord+Copy,D:'a> Iterator for RangePairIter<'a, K, D> {
     type Item = (&'a K,&'a D);
 
     fn next(&mut self) -> Option<(&'a K,&'a D)> {
-        match self.tree.root {
-            None => return None,
-            Some(ref node) => {
-                self.get_next_key_under(node)
-            }
-        }
+        self.tree.root.as_ref().map_or(None,|node| self.get_next_key_under(node))
     }
 
 
