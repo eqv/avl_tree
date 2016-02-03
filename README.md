@@ -1,6 +1,6 @@
 # Rust AVL Trees
 This is an implementation of AVL trees in rust. It currently features insert, delete, look-up and iteration over ranges of arbitrary keys and arbitrary
-values. It is implemented entirely without unsafe code (this means any update will result in an additional unecessary amount of log(n) memory writes du to `foo.left = some_op(foo.left.take())`. You should not be using this unless you know what you are doing, as I only wrote it to get to know programming in rust. However, it is decently tested and contains no unsafe code so feel free to have a look at it. Also since it is a learning project, I would be very glad to hear your ideas of how to improve the code (even simple things like reformating).
+values. It is implemented entirely without unsafe code (this means any update will result in an additional unnecessary amount of log(n) memory writes due to `foo.left = some_op(foo.left.take())`. You should not be using this unless you know what you are doing, as I only wrote it to get to know programming in rust. However, it is decently tested and contains no unsafe code so feel free to have a look at it. Also since it is a learning project, I would be very glad to hear your ideas of how to improve the code (even simple things like reformating).
 #Install
 
 `avl_tree` can be installed from [crates.io](https://crates.io/crates/avl_tree) by adding `avl_tree = "0.2.*"` to the dependencies in your `Cargo.toml`.
