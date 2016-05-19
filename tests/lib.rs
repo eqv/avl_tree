@@ -2,10 +2,9 @@
 
 extern crate avl_tree;
 extern crate rand;
-extern crate time;
 
 use std::collections::Bound;
-use time::PreciseTime;
+use std::time::Instant;
 
 #[test]
 fn test_getters(){
@@ -72,28 +71,26 @@ fn test_delete(){
 fn test_perfomance(){
     let mut t = avl_tree::AVLTree::<u64,i32>::new();
     let data = 1337;
-    let start = PreciseTime::now();
+    let start = Instant::now();
     for _ in 1..10000 {
         t.insert(1, data);
         t.insert(20000, data+1);
         t.delete(1);
         t.delete(20000);
     }
-    let end = PreciseTime::now();
-    let diff_simple = start.to(end).num_milliseconds();
+    let diff_simple = start.elapsed();
     for x in 5..2000 {
         t.insert(x, data);
     }
 
-    let start_2 = PreciseTime::now();
+    let start_2 = Instant::now();
     for _ in 1..10000 {
         t.insert(1, data);
         t.insert(20000, data+1);
         t.delete(1);
         t.delete(20000);
     }
-    let end_2 = PreciseTime::now();
-    let diff_full = start_2.to(end_2).num_milliseconds();
+    let diff_full = start_2.elapsed();
     assert!(diff_full < diff_simple * 13); //log time 
 }
 
